@@ -17,6 +17,7 @@ from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.outputs import EmbeddingRequestOutput, RequestOutput
 from vllm.pooling_params import PoolingParams
+from vllm.prompt_adapter.request import PromptAdapterRequest
 from vllm.sampling_params import SamplingParams
 from vllm.sequence import ExecuteModelRequest, SamplerOutput
 from vllm.usage.usage_lib import UsageContext
@@ -270,12 +271,13 @@ class _AsyncLLMEngine(LLMEngine):
                          multi_modal_data=inputs.get("multi_modal_data"))
 
     async def add_request_async(
-        self,
-        request_id: str,
-        inputs: PromptInputs,
-        params: Union[SamplingParams, PoolingParams],
-        arrival_time: Optional[float] = None,
-        lora_request: Optional[LoRARequest] = None,
+            self,
+            request_id: str,
+            inputs: PromptInputs,
+            params: Union[SamplingParams, PoolingParams],
+            arrival_time: Optional[float] = None,
+            lora_request: Optional[LoRARequest] = None,
+            prompt_adapter_request: Optional[PromptAdapterRequest] = None
     ) -> None:
         if lora_request is not None and not self.lora_config:
             raise ValueError(f"Got lora_request {lora_request} but LoRA is "
@@ -292,7 +294,7 @@ class _AsyncLLMEngine(LLMEngine):
             params=params,
             arrival_time=arrival_time,
             lora_request=lora_request,
-        )
+            prompt_adapter_request=prompt_adapter_request)
 
     async def check_health_async(self) -> None:
         self.model_executor.check_health()
@@ -534,6 +536,7 @@ class AsyncLLMEngine:
         params: Union[SamplingParams, PoolingParams],
         arrival_time: Optional[float] = None,
         lora_request: Optional[LoRARequest] = None,
+        prompt_adapter_request: Optional[PromptAdapterRequest] = None
     ) -> AsyncStream:
         if self.log_requests:
             if isinstance(inputs, str):
@@ -587,7 +590,7 @@ class AsyncLLMEngine:
             params=params,
             arrival_time=arrival_time,
             lora_request=lora_request,
-        )
+            prompt_adapter_request=prompt_adapter_request)
 
         return stream
 
